@@ -1,55 +1,52 @@
-import sqlite3
-
 from src.database_validation import (
-    create_orders_table,
+    create_database,
     find_duplicate_orders,
     find_invalid_amounts,
+    find_invalid_currencies,
     find_invalid_statuses,
 )
 
 
-def create_test_database():
-    connection = sqlite3.connect(":memory:")
-    create_orders_table(connection)
-    return connection
-
-
 def test_find_duplicate_orders():
-    connection = create_test_database()
-
-    connection.executemany(
-        """
-        INSERT INTO orders (order_id, customer, amount, currency, status)
-        VALUES (?, ?, ?, ?, ?)
-        """,
-        [
-            (1001, "Ana", 120.0, "USD", "completed"),
-            (1001, "Ana", 120.0, "USD", "completed"),
-            (1002, "Luis", 80.0, "USD", "pending"),
-        ],
-    )
+    connection = create_database()
 
     duplicates = find_duplicate_orders(connection)
 
-    assert 1001 in duplicates
+    assert len(duplicates) > 0
+    assert any(order_id == "1008" for order_id, count in duplicates)
+
     connection.close()
 
 
 def test_find_invalid_amounts():
-    connection = create_test_database()
-
-    connection.executemany(
-        """
-        INSERT INTO orders (order_id, customer, amount, currency, status)
-        VALUES (?, ?, ?, ?, ?)
-        """,
-        [
-            (1001, "Ana", 120.0, "USD", "completed"),
-            (1002, "Luis", -50.0, "USD", "pending"),
-        ],
-    )
+    connection = create_database()
 
     invalid_orders = find_invalid_amounts(connection)
+    invalid_ids = [row[0] for row in invalid_orders]
 
-    assert 1002 in invalid_orders
-    connection
+    assert "1004" in invalid_ids
+    assert "1007" in invalid_ids
+
+    connection.close()
+
+
+def test_find_invalid_currencies():
+    connection = create_database()
+
+    invalid_orders = find_invalid_currencies(connection)
+    invalid_ids = [row[0] for row in invalid_orders]
+
+    assert "1008" in invalid_ids
+
+    connection.close()
+
+
+def test_find_invalid_statuses():
+    connection = create_database()
+
+    invalid_orders = find_invalid_statuses(connection)
+    invalid_ids = [row[0] for row in invalid_orders]
+
+    assert "1008" in invalid_ids
+
+    connection.close()
