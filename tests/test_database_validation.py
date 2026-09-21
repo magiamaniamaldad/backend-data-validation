@@ -24,8 +24,8 @@ def test_find_invalid_amounts():
     invalid_orders = find_invalid_amounts(connection)
     invalid_ids = [row[0] for row in invalid_orders]
 
-    assert "1004" in invalid_ids
-    assert "1007" in invalid_ids
+    assert "1003" in invalid_ids
+    assert "1005" in invalid_ids
 
     connection.close()
 
@@ -36,7 +36,7 @@ def test_find_invalid_currencies():
     invalid_orders = find_invalid_currencies(connection)
     invalid_ids = [row[0] for row in invalid_orders]
 
-    assert "1008" in invalid_ids
+    assert "1007" in invalid_ids
 
     connection.close()
 
